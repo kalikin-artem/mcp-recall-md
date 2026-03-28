@@ -1,12 +1,12 @@
 [project]
 name = "mcp-recall-md"
-version = "0.3.0"
+version = "0.4.0"
 description = "Local semantic search for markdown notes — MCP server"
 readme = "README.md"
 license = "MIT"
 authors = [{ name = "Artem Kalikin", email = "artem@kalikin.org" }]
 requires-python = ">=3.12"
-keywords = ["mcp", "semantic-search", "knowledge-base", "chromadb", "obsidian", "markdown"]
+keywords = ["mcp", "semantic-search", "knowledge-base", "chromadb", "obsidian", "markdown", "vector-search", "embeddings", "offline", "local", "notes", "logseq"]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",

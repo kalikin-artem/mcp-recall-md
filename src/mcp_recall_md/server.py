@@ -12,6 +12,7 @@ from mcp_recall_md.watcher import MarkdownHandler, index_existing, load_ignore_s
 
 mcp = FastMCP("mcp-recall-md")
 _backend: VectorStore | None = None
+_vault_paths: list[str] = []
 
 
 def _get_backend() -> VectorStore:
@@ -46,6 +47,15 @@ def remove(key: str) -> str:
     return f"Removed: {key}" if removed else f"Not found: {key}"
 
 
+@mcp.tool()
+def status() -> dict:
+    """Show the current state of the knowledge base: number of indexed articles and watched vaults."""
+    return {
+        "indexed_articles": _get_backend().count(),
+        "vaults": _vault_paths,
+    }
+
+
 def _start_watchers(vaults: list[str], backend: VectorStore) -> Observer:
     """Index existing files and start watching all vaults. Returns the observer."""
     observer = Observer()
@@ -78,6 +88,7 @@ def main():
 
     observer = None
     if args.vaults:
+        _vault_paths.extend(args.vaults)
         observer = _start_watchers(args.vaults, _backend)
         log.info("watching %d vault(s)", len(args.vaults))
 

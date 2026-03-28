@@ -1,23 +1,42 @@
 <h1 align="center">mcp-recall-md</h1>
 
 <p align="center">
-  Local semantic search for your markdown notes — via <a href="https://modelcontextprotocol.io/">MCP</a><br>
-  Search by meaning, not keywords. 100% offline.
+  Local semantic search for your markdown notes — via <a href="https://modelcontextprotocol.io/">MCP</a>.
 </p>
 
 <p align="center">
-  <a href="#install">Install</a>&nbsp;&nbsp;·&nbsp;&nbsp;
-  <a href="#tools">Tools</a>&nbsp;&nbsp;·&nbsp;&nbsp;
-  <a href="#auto-indexing">Auto-indexing</a>&nbsp;&nbsp;·&nbsp;&nbsp;
-  <a href="#recallignore">.recallignore</a>&nbsp;&nbsp;·&nbsp;&nbsp;
-  <a href="#troubleshooting">Troubleshooting</a>
+  <a href="https://pypi.org/project/mcp-recall-md/"><img src="https://img.shields.io/pypi/v/mcp-recall-md" alt="PyPI version"></a>
+  <a href="https://pypi.org/project/mcp-recall-md/"><img src="https://img.shields.io/pypi/pyversions/mcp-recall-md" alt="Python versions"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/github/license/kalikin-artem/mcp-recall-md" alt="License"></a>
 </p>
+
+<br>
+
+```mermaid
+graph LR
+    A["<b>.md files</b><br><i>Obsidian · Logseq · plain md</i>"] -- "watch + index" --> B["<b>mcp-recall-md</b><br><i>local vector store</i>"]
+    C["<b>AI client</b><br><i>Claude · Cursor · Windsurf</i>"] -- "MCP search" --> B
+    style A fill:#f9f4eb,stroke:#c9a96e,color:#333
+    style B fill:#e8f0fe,stroke:#4a86c8,color:#333
+    style C fill:#e8f5e9,stroke:#5b9a5b,color:#333
+```
+
+> **"Search my notes about Kubernetes networking"**
+>
+> → finds `kubernetes-networking.md` (similarity: 0.53) — even though you phrased it differently than the note
+
+<br>
+
+- **Search by meaning, not keywords** — finds notes even when your wording doesn't match
+- **100% offline** — no API keys, no cloud, nothing leaves your machine
+- **Zero config** — point at your folders, restart your AI client, done
+- **Real-time sync** — file watcher picks up changes instantly, re-embeds only what changed
 
 ---
 
-## Install
+## Quick start
 
-### Option A: uvx (recommended, no install needed)
+Add to your MCP client config and restart:
 
 ```json
 {
@@ -30,7 +49,18 @@
 }
 ```
 
-### Option B: pip
+> **Config file location:** `.mcp.json` (Claude Code) · `claude_desktop_config.json` (Claude Desktop) · Cursor / Windsurf MCP settings
+
+That's it. Your notes are searchable.
+
+---
+
+## Installation
+
+The quick start above uses [`uvx`](https://docs.astral.sh/uv/) (recommended). Other options:
+
+<details>
+<summary><b>pip</b></summary>
 
 ```bash
 pip install mcp-recall-md
@@ -47,11 +77,13 @@ pip install mcp-recall-md
 }
 ```
 
-### Option C: Download exe (no Python needed)
+</details>
+
+<details>
+<summary><b>Standalone .exe (no Python needed)</b></summary>
 
 1. Download **mcp-recall-md.exe** from the [latest release](https://github.com/kalikin-artem/mcp-recall-md/releases)
-2. Put it in a permanent folder (e.g. `C:\Tools\mcp-recall-md\`)
-3. Add to MCP config:
+2. Put it somewhere permanent (e.g. `C:\Tools\mcp-recall-md\`)
 
 ```json
 {
@@ -64,44 +96,23 @@ pip install mcp-recall-md
 }
 ```
 
-Multiple vaults? Just list them:
+</details>
+
+---
+
+## Configuration
+
+### Multiple vaults
+
+List all folders — each is indexed independently:
 
 ```json
 "args": ["--vaults", "C:/notes/work", "C:/notes/personal", "C:/docs"]
 ```
 
-Add the config to `.mcp.json` (Claude Code) or `claude_desktop_config.json` (Claude Desktop), then restart.
+### .recallignore
 
----
-
-## Tools
-
-| Tool | Parameters | What it does |
-|------|-----------|-------------|
-| `index` | `key`, `content` | Store or update an article |
-| `search` | `query`, `limit` | Semantic similarity search |
-| `remove` | `key` | Delete an article |
-
----
-
-## Auto-indexing
-
-When `--vaults` is provided, the server automatically:
-
-1. Indexes all existing `.md` files on startup (skips unchanged files on restart)
-2. Watches for new, modified, and deleted files in real time
-
-No separate watcher process needed — it's all one command.
-
-Without `--vaults`, the server runs in manual mode (use the `index` tool to add content).
-
----
-
-## .recallignore
-
-Drop a `.recallignore` file in any vault root to control which files get indexed. Uses standard `.gitignore` syntax.
-
-**Exclude specific folders:**
+Drop a `.recallignore` in any vault root to exclude files. Standard `.gitignore` syntax:
 
 ```gitignore
 .obsidian/
@@ -109,33 +120,28 @@ _templates/
 drafts/
 ```
 
-**Include only specific folders** (exclude everything else):
-
-```gitignore
-*
-!notes/
-!docs/
-```
-
-Each vault gets its own `.recallignore` — they're independent.
-
----
-
-## CLI flags
+### CLI flags
 
 | Flag | Default | Description |
 |------|---------|-------------|
-| `--vaults` | none | Paths to markdown folders to index and watch |
+| `--vaults` | *(none)* | Folders to index and watch |
 | `--db-path` | `~/.mcp-recall-md/db` | ChromaDB storage location |
-| `--verbose` | off | Enable debug logging to stderr |
+| `--verbose` | off | Debug logging to stderr |
 
 ---
 
-## Logs
+## Tools
 
-Logs are always written to `~/.mcp-recall-md/server.log` (5 MB max, 3 rotated backups).
+Your AI assistant gets these tools automatically via MCP:
 
-Add `--verbose` for additional debug output to stderr.
+| Tool | Description |
+|------|-------------|
+| `search` | Find notes by meaning — returns ranked results with similarity scores and file paths |
+| `status` | Show indexed article count and watched vaults |
+| `index` | Manually store an article (for use without `--vaults`) |
+| `remove` | Delete an article from the index |
+
+Most users only interact with `search` — everything else is automatic.
 
 ---
 
@@ -143,9 +149,19 @@ Add `--verbose` for additional debug output to stderr.
 
 | Problem | Fix |
 |---------|-----|
-| Search returns nothing | Make sure `--vaults` is set, or use the `index` tool manually |
-| First run is slow | Embedding model (~80 MB) downloads once |
-| Need to debug | Add `--verbose` flag, check `~/.mcp-recall-md/server.log` |
+| Search returns nothing | Check that `--vaults` points to folders with `.md` files |
+| First run is slow | Embedding model (~80 MB) downloads once on first use |
+| Need to debug | Add `--verbose`, check `~/.mcp-recall-md/server.log` |
+| Force re-index | Delete `~/.mcp-recall-md/db` and restart |
+
+Logs: `~/.mcp-recall-md/server.log` (5 MB max, 3 rotated backups)
+
+---
+
+## Limitations
+
+- **Single-chunk embedding** — large files (10k+ words) may search less precisely than shorter notes
+- **English-optimized** — other languages work but with lower accuracy
 
 ---
 
