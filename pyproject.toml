@@ -1,0 +1,36 @@
+[project]
+name = "mcp-recall-md"
+version = "0.1.0"
+description = "Local semantic search for markdown notes — MCP server"
+readme = "README.md"
+license = "MIT"
+authors = [{ name = "Artem Kalikin", email = "artem@kalikin.org" }]
+requires-python = ">=3.12"
+keywords = ["mcp", "semantic-search", "knowledge-base", "chromadb", "obsidian", "markdown"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Text Processing :: Indexing",
+]
+dependencies = [
+    "fastmcp>=2.0",
+    "chromadb",
+    "watchdog",
+]
+
+[project.scripts]
+mcp-recall-md = "mcp_recall_md.server:main"
+mcp-recall-md-watcher = "mcp_recall_md.watcher:main"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/mcp_recall_md"]

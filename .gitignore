@@ -1,0 +1,35 @@
+# Vector store data
+.mcp-recall-md/
+
+# Logs
+mcp-recall-md.log
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Virtual environments
+.venv/
+venv/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Testing
+.pytest_cache/
+
+# PyInstaller
+dist/
+build/
+*.spec.bak
