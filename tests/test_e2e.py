@@ -20,7 +20,7 @@ def test_file_drop_triggers_indexing_and_search(backend: VectorStore, tmp_path: 
     vault = tmp_path / "vault"
     vault.mkdir()
 
-    handler = MarkdownHandler(backend)
+    handler = MarkdownHandler(backend, vault)
     observer = Observer()
     observer.schedule(handler, str(vault), recursive=True)
     observer.start()
