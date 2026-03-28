@@ -1,13 +1,17 @@
 """MCP server exposing semantic memory tools over stdio."""
 
 import argparse
+import sys
+import threading
 from pathlib import Path
 
 from fastmcp import FastMCP
+from watchdog.observers import Observer
 
 from mcp_recall_md.chroma_backend import VectorStore
 from mcp_recall_md.config import DEFAULT_COLLECTION, resolve_db_path
 from mcp_recall_md.log import log, setup
+from mcp_recall_md.watcher import MarkdownHandler, index_existing, load_ignore_spec
 
 mcp = FastMCP("mcp-recall-md")
 _backend: VectorStore | None = None
@@ -46,15 +50,48 @@ def remove(key: str) -> str:
     return f"Removed: {key}" if removed else f"Not found: {key}"
 
 
+def _start_watchers(vaults: list[str], backend: VectorStore) -> Observer:
+    """Index existing files and start watching all vaults. Returns the observer."""
+    observer = Observer()
+    for vault_str in vaults:
+        vault_path = Path(vault_str)
+        if not vault_path.is_dir():
+            log.warning("vault not found, skipping: %s", vault_path)
+            continue
+        spec = load_ignore_spec(vault_path)
+        if spec:
+            log.info("loaded .recallignore from %s", vault_path)
+        count = index_existing(vault_path, backend, spec)
+        log.info("indexed %d files from %s", count, vault_path)
+        handler = MarkdownHandler(backend, vault_path, spec)
+        observer.schedule(handler, str(vault_path), recursive=True)
+    observer.start()
+    return observer
+
+
 def main():
-    global _cli_args
+    global _cli_args, _backend
     parser = argparse.ArgumentParser(description="mcp-recall-md MCP server")
+    parser.add_argument("--vaults", nargs="+", help="Paths to markdown note folders to index and watch")
     parser.add_argument("--db-path", help="Path to ChromaDB storage (default: .mcp-recall-md)")
     parser.add_argument("--verbose", action="store_true", help="Enable debug logging")
     _cli_args = parser.parse_args()
     setup(verbose=_cli_args.verbose)
+
+    backend = _get_backend()
+
+    observer = None
+    if _cli_args.vaults:
+        observer = _start_watchers(_cli_args.vaults, backend)
+        log.info("watching %d vault(s)", len(_cli_args.vaults))
+
     log.info("server starting")
-    mcp.run(transport="stdio")
+    try:
+        mcp.run(transport="stdio")
+    finally:
+        if observer:
+            observer.stop()
+            observer.join()
 
 
 if __name__ == "__main__":

@@ -19,11 +19,11 @@ dependencies = [
     "fastmcp>=2.0",
     "chromadb",
     "watchdog",
+    "pathspec",
 ]
 
 [project.scripts]
 mcp-recall-md = "mcp_recall_md.server:main"
-mcp-recall-md-watcher = "mcp_recall_md.watcher:main"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

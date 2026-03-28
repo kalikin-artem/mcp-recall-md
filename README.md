@@ -6,10 +6,11 @@
 </p>
 
 <p align="center">
-  <a href="#-install">Install</a>&nbsp;&nbsp;·&nbsp;&nbsp;
-  <a href="#-tools">Tools</a>&nbsp;&nbsp;·&nbsp;&nbsp;
-  <a href="#-auto-indexing">Auto-indexing</a>&nbsp;&nbsp;·&nbsp;&nbsp;
-  <a href="#-troubleshooting">Troubleshooting</a>
+  <a href="#install">Install</a>&nbsp;&nbsp;·&nbsp;&nbsp;
+  <a href="#tools">Tools</a>&nbsp;&nbsp;·&nbsp;&nbsp;
+  <a href="#auto-indexing">Auto-indexing</a>&nbsp;&nbsp;·&nbsp;&nbsp;
+  <a href="#recallignore">.recallignore</a>&nbsp;&nbsp;·&nbsp;&nbsp;
+  <a href="#troubleshooting">Troubleshooting</a>
 </p>
 
 ---
@@ -29,7 +30,7 @@ Add to your MCP config (`.mcp.json` for Claude Code, `claude_desktop_config.json
   "mcpServers": {
     "mcp-recall-md": {
       "command": "mcp-recall-md",
-      "args": []
+      "args": ["--vaults", "C:/Users/you/notes"]
     }
   }
 }
@@ -46,10 +47,16 @@ Add to your MCP config (`.mcp.json` for Claude Code, `claude_desktop_config.json
   "mcpServers": {
     "mcp-recall-md": {
       "command": "C:/Tools/mcp-recall-md/mcp-recall-md.exe",
-      "args": []
+      "args": ["--vaults", "C:/Users/you/notes"]
     }
   }
 }
+```
+
+Multiple vaults? Just list them:
+
+```json
+"args": ["--vaults", "C:/notes/work", "C:/notes/personal", "C:/docs"]
 ```
 
 Restart your app. Start asking:
@@ -72,13 +79,38 @@ Restart your app. Start asking:
 
 ## Auto-indexing
 
-To auto-index a folder of `.md` files and watch for changes:
+When `--vaults` is provided, the server automatically:
 
-```bash
-mcp-recall-md-watcher --vault "C:/Users/you/notes"
+1. Indexes all existing `.md` files on startup
+2. Watches for new and modified files in real time
+
+No separate watcher process needed — it's all one command.
+
+Without `--vaults`, the server runs in manual mode (use the `index` tool to add content).
+
+---
+
+## .recallignore
+
+Drop a `.recallignore` file in any vault root to control which files get indexed. Uses standard `.gitignore` syntax.
+
+**Exclude specific folders:**
+
+```gitignore
+.obsidian/
+_templates/
+drafts/
 ```
 
-This indexes all existing files on startup, then watches for new and modified files in real time.
+**Include only specific folders** (exclude everything else):
+
+```gitignore
+*
+!notes/
+!docs/
+```
+
+Each vault gets its own `.recallignore` — they're independent.
 
 ---
 
@@ -86,7 +118,7 @@ This indexes all existing files on startup, then watches for new and modified fi
 
 | Problem | Fix |
 |---------|-----|
-| Search returns nothing | Index files first — run the watcher or use the `index` tool |
+| Search returns nothing | Make sure `--vaults` is set, or use the `index` tool manually |
 | First run is slow | Embedding model (~80 MB) downloads once |
 | Need to debug | Add `--verbose` flag |
 
