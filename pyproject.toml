@@ -1,6 +1,6 @@
 [project]
 name = "mcp-recall-md"
-version = "0.2.0"
+version = "0.3.0"
 description = "Local semantic search for markdown notes — MCP server"
 readme = "README.md"
 license = "MIT"
@@ -21,6 +21,11 @@ dependencies = [
     "watchdog",
     "pathspec",
 ]
+
+[project.urls]
+Homepage = "https://github.com/kalikin-artem/mcp-recall-md"
+Repository = "https://github.com/kalikin-artem/mcp-recall-md"
+Issues = "https://github.com/kalikin-artem/mcp-recall-md/issues"
 
 [project.scripts]
 mcp-recall-md = "mcp_recall_md.server:main"

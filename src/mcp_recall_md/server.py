@@ -1,29 +1,23 @@
 """MCP server exposing semantic memory tools over stdio."""
 
 import argparse
-import sys
-import threading
 from pathlib import Path
 
 from fastmcp import FastMCP
 from watchdog.observers import Observer
 
-from mcp_recall_md.chroma_backend import VectorStore
-from mcp_recall_md.config import DEFAULT_COLLECTION, resolve_db_path
+from mcp_recall_md.chroma_backend import VectorStore, resolve_db_path
 from mcp_recall_md.log import log, setup
 from mcp_recall_md.watcher import MarkdownHandler, index_existing, load_ignore_spec
 
 mcp = FastMCP("mcp-recall-md")
 _backend: VectorStore | None = None
-_cli_args: argparse.Namespace | None = None
 
 
 def _get_backend() -> VectorStore:
-    """Lazy-init the vector store on first tool call."""
     global _backend
     if _backend is None:
-        db_path = resolve_db_path(getattr(_cli_args, "db_path", None))
-        _backend = VectorStore(db_path=db_path, collection_name=DEFAULT_COLLECTION)
+        raise RuntimeError("Backend not initialized — call main() first")
     return _backend
 
 
@@ -38,7 +32,9 @@ def index(key: str, content: str) -> str:
 def search(query: str, limit: int = 5) -> list[dict]:
     """Semantic search across the knowledge base.
 
-    Returns up to `limit` articles ranked by relevance, each with key, content, and similarity score.
+    Returns up to `limit` articles ranked by similarity, each with key, content,
+    similarity (0-1, higher is better), and source file path.
+    Low-relevance results are automatically filtered out.
     """
     return _get_backend().search(query, limit)
 
@@ -70,20 +66,20 @@ def _start_watchers(vaults: list[str], backend: VectorStore) -> Observer:
 
 
 def main():
-    global _cli_args, _backend
+    global _backend
     parser = argparse.ArgumentParser(description="mcp-recall-md MCP server")
     parser.add_argument("--vaults", nargs="+", help="Paths to markdown note folders to index and watch")
-    parser.add_argument("--db-path", help="Path to ChromaDB storage (default: .mcp-recall-md)")
+    parser.add_argument("--db-path", help="Path to ChromaDB storage (default: ~/.mcp-recall-md/db)")
     parser.add_argument("--verbose", action="store_true", help="Enable debug logging")
-    _cli_args = parser.parse_args()
-    setup(verbose=_cli_args.verbose)
+    args = parser.parse_args()
+    setup(verbose=args.verbose)
 
-    backend = _get_backend()
+    _backend = VectorStore(db_path=resolve_db_path(args.db_path))
 
     observer = None
-    if _cli_args.vaults:
-        observer = _start_watchers(_cli_args.vaults, backend)
-        log.info("watching %d vault(s)", len(_cli_args.vaults))
+    if args.vaults:
+        observer = _start_watchers(args.vaults, _backend)
+        log.info("watching %d vault(s)", len(args.vaults))
 
     log.info("server starting")
     try:

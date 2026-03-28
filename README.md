@@ -17,13 +17,24 @@
 
 ## Install
 
-### Option A: Python users
+### Option A: uvx (recommended, no install needed)
+
+```json
+{
+  "mcpServers": {
+    "mcp-recall-md": {
+      "command": "uvx",
+      "args": ["mcp-recall-md", "--vaults", "C:/Users/you/notes"]
+    }
+  }
+}
+```
+
+### Option B: pip
 
 ```bash
 pip install mcp-recall-md
 ```
-
-Add to your MCP config (`.mcp.json` for Claude Code, `claude_desktop_config.json` for Claude Desktop):
 
 ```json
 {
@@ -36,7 +47,7 @@ Add to your MCP config (`.mcp.json` for Claude Code, `claude_desktop_config.json
 }
 ```
 
-### Option B: Download exe (no Python needed)
+### Option C: Download exe (no Python needed)
 
 1. Download **mcp-recall-md.exe** from the [latest release](https://github.com/kalikin-artem/mcp-recall-md/releases)
 2. Put it in a permanent folder (e.g. `C:\Tools\mcp-recall-md\`)
@@ -59,11 +70,7 @@ Multiple vaults? Just list them:
 "args": ["--vaults", "C:/notes/work", "C:/notes/personal", "C:/docs"]
 ```
 
-Restart your app. Start asking:
-
-> *"Search my knowledge base for Kubernetes networking"*
->
-> *"Find my notes about AWS Bedrock"*
+Add the config to `.mcp.json` (Claude Code) or `claude_desktop_config.json` (Claude Desktop), then restart.
 
 ---
 
@@ -81,8 +88,8 @@ Restart your app. Start asking:
 
 When `--vaults` is provided, the server automatically:
 
-1. Indexes all existing `.md` files on startup
-2. Watches for new and modified files in real time
+1. Indexes all existing `.md` files on startup (skips unchanged files on restart)
+2. Watches for new, modified, and deleted files in real time
 
 No separate watcher process needed — it's all one command.
 
@@ -114,13 +121,31 @@ Each vault gets its own `.recallignore` — they're independent.
 
 ---
 
+## CLI flags
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `--vaults` | none | Paths to markdown folders to index and watch |
+| `--db-path` | `~/.mcp-recall-md/db` | ChromaDB storage location |
+| `--verbose` | off | Enable debug logging to stderr |
+
+---
+
+## Logs
+
+Logs are always written to `~/.mcp-recall-md/server.log` (5 MB max, 3 rotated backups).
+
+Add `--verbose` for additional debug output to stderr.
+
+---
+
 ## Troubleshooting
 
 | Problem | Fix |
 |---------|-----|
 | Search returns nothing | Make sure `--vaults` is set, or use the `index` tool manually |
 | First run is slow | Embedding model (~80 MB) downloads once |
-| Need to debug | Add `--verbose` flag |
+| Need to debug | Add `--verbose` flag, check `~/.mcp-recall-md/server.log` |
 
 ---
 

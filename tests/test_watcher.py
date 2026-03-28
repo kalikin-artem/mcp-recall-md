@@ -4,7 +4,7 @@ from pathlib import Path
 from unittest.mock import MagicMock
 
 import pytest
-from watchdog.events import FileCreatedEvent, FileModifiedEvent
+from watchdog.events import FileCreatedEvent, FileDeletedEvent, FileModifiedEvent
 
 from mcp_recall_md.watcher import MarkdownHandler, index_existing, load_ignore_spec
 
@@ -12,6 +12,11 @@ from mcp_recall_md.watcher import MarkdownHandler, index_existing, load_ignore_s
 @pytest.fixture()
 def mock_backend():
     return MagicMock()
+
+
+def _vault_key(tmp_path: Path, rel: str) -> str:
+    """Expected key format: vault_dir_name/relative_path."""
+    return f"{tmp_path.resolve().name}/{rel}"
 
 
 def test_handler_indexes_md_file(mock_backend, tmp_path: Path):
@@ -22,7 +27,11 @@ def test_handler_indexes_md_file(mock_backend, tmp_path: Path):
     event = FileCreatedEvent(str(md_file))
     handler.on_created(event)
 
-    mock_backend.index.assert_called_once_with("test-note", "# Test\nSome content about testing.")
+    mock_backend.index.assert_called_once()
+    args, kwargs = mock_backend.index.call_args
+    assert args[0] == _vault_key(tmp_path, "test-note.md")
+    assert args[1] == "# Test\nSome content about testing."
+    assert kwargs["metadata"]["source"] == str(md_file.resolve())
 
 
 def test_handler_ignores_non_md(mock_backend, tmp_path: Path):
@@ -44,7 +53,31 @@ def test_handler_on_modified(mock_backend, tmp_path: Path):
     event = FileModifiedEvent(str(md_file))
     handler.on_modified(event)
 
-    mock_backend.index.assert_called_once_with("updated", "updated content")
+    mock_backend.index.assert_called_once()
+    assert mock_backend.index.call_args[0][0] == _vault_key(tmp_path, "updated.md")
+
+
+def test_handler_on_deleted(mock_backend, tmp_path: Path):
+    md_file = tmp_path / "removed.md"
+
+    handler = MarkdownHandler(mock_backend, tmp_path)
+    event = FileDeletedEvent(str(md_file))
+    handler.on_deleted(event)
+
+    mock_backend.remove.assert_called_once_with(_vault_key(tmp_path, "removed.md"))
+
+
+def test_key_uses_relative_path_with_vault_prefix(mock_backend, tmp_path: Path):
+    sub = tmp_path / "sub"
+    sub.mkdir()
+    md_file = sub / "deep.md"
+    md_file.write_text("nested", encoding="utf-8")
+
+    handler = MarkdownHandler(mock_backend, tmp_path)
+    event = FileCreatedEvent(str(md_file))
+    handler.on_created(event)
+
+    assert mock_backend.index.call_args[0][0] == _vault_key(tmp_path, "sub/deep.md")
 
 
 def test_index_existing(mock_backend, tmp_path: Path):
@@ -58,6 +91,21 @@ def test_index_existing(mock_backend, tmp_path: Path):
     assert count == 3
     assert mock_backend.index.call_count == 3
 
+    keys = [c[0][0] for c in mock_backend.index.call_args_list]
+    assert _vault_key(tmp_path, "sub/c.md") in keys
+
+
+def test_metadata_includes_source_and_vault(mock_backend, tmp_path: Path):
+    md_file = tmp_path / "note.md"
+    md_file.write_text("content", encoding="utf-8")
+
+    count = index_existing(tmp_path, mock_backend)
+    assert count == 1
+    meta = mock_backend.index.call_args[1]["metadata"]
+    assert meta["source"] == str(md_file.resolve())
+    assert meta["vault"] == str(tmp_path.resolve())
+    assert "mtime" in meta
+
 
 def test_recallignore_excludes_folders(mock_backend, tmp_path: Path):
     (tmp_path / ".recallignore").write_text("drafts/\n", encoding="utf-8")
@@ -69,7 +117,7 @@ def test_recallignore_excludes_folders(mock_backend, tmp_path: Path):
     spec = load_ignore_spec(tmp_path)
     count = index_existing(tmp_path, mock_backend, spec)
     assert count == 1
-    mock_backend.index.assert_called_once_with("good", "keep")
+    assert mock_backend.index.call_args[0][0] == _vault_key(tmp_path, "notes/good.md")
 
 
 def test_recallignore_handler_skips_ignored(mock_backend, tmp_path: Path):
@@ -120,7 +168,6 @@ def test_multiple_vaults_independent_recallignore(mock_backend, tmp_path: Path):
     vault_a.mkdir()
     vault_b.mkdir()
 
-    # vault_a ignores drafts/, vault_b has no ignore file
     (vault_a / ".recallignore").write_text("drafts/\n", encoding="utf-8")
     (vault_a / "doc.md").write_text("work doc", encoding="utf-8")
     (vault_a / "drafts").mkdir()
@@ -135,7 +182,24 @@ def test_multiple_vaults_independent_recallignore(mock_backend, tmp_path: Path):
         spec = load_ignore_spec(vault)
         total += index_existing(vault, mock_backend, spec)
 
-    # vault_a: 1 (doc.md, drafts/wip.md excluded)
-    # vault_b: 2 (note.md + drafts/idea.md, no ignore)
     assert total == 3
     assert mock_backend.index.call_count == 3
+
+
+def test_multiple_vaults_no_key_collision(mock_backend, tmp_path: Path):
+    """Two vaults with same filename get different keys due to vault prefix."""
+    vault_a = tmp_path / "work"
+    vault_b = tmp_path / "personal"
+    vault_a.mkdir()
+    vault_b.mkdir()
+    (vault_a / "setup.md").write_text("work setup", encoding="utf-8")
+    (vault_b / "setup.md").write_text("personal setup", encoding="utf-8")
+
+    for vault in [vault_a, vault_b]:
+        index_existing(vault, mock_backend)
+
+    assert mock_backend.index.call_count == 2
+    keys = [c[0][0] for c in mock_backend.index.call_args_list]
+    assert keys[0] != keys[1]
+    assert "work/setup.md" in keys[0]
+    assert "personal/setup.md" in keys[1]

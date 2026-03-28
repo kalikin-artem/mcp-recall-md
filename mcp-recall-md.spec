@@ -32,6 +32,7 @@ a = Analysis(
         "watchdog",
         "watchdog.observers",
         "watchdog.events",
+        "pathspec",
     ],
     excludes=["pytest", "IPython", "notebook", "matplotlib", "tkinter"],
     noarchive=False,
