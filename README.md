@@ -8,6 +8,7 @@
   <a href="https://pypi.org/project/mcp-recall-md/"><img src="https://img.shields.io/pypi/v/mcp-recall-md" alt="PyPI version"></a>
   <a href="https://pypi.org/project/mcp-recall-md/"><img src="https://img.shields.io/pypi/pyversions/mcp-recall-md" alt="Python versions"></a>
   <a href="LICENSE"><img src="https://img.shields.io/github/license/kalikin-artem/mcp-recall-md" alt="License"></a>
+  <a href="https://ko-fi.com/kalikinartem"><img src="https://img.shields.io/badge/Ko--fi-Support%20this%20project-FF5E5B?logo=ko-fi&logoColor=white" alt="Ko-fi"></a>
 </p>
 
 <br>
