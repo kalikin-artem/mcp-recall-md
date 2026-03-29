@@ -1,6 +1,6 @@
 [project]
 name = "mcp-recall-md"
-version = "0.4.0"
+version = "0.4.1"
 description = "Local semantic search for markdown notes — MCP server"
 readme = "README.md"
 license = "MIT"

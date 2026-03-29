@@ -169,3 +169,5 @@ Logs: `~/.mcp-recall-md/server.log` (5 MB max, 3 rotated backups)
 ## License
 
 MIT
+
+<!-- mcp-name: io.github.kalikin-artem/recall-md -->
