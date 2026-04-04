@@ -23,9 +23,9 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/kalikin-artem/mcp-recall-md"
-Repository = "https://github.com/kalikin-artem/mcp-recall-md"
-Issues = "https://github.com/kalikin-artem/mcp-recall-md/issues"
+Homepage = "https://github.com/kalikin-artem/proj-mcp-recall-md"
+Repository = "https://github.com/kalikin-artem/proj-mcp-recall-md"
+Issues = "https://github.com/kalikin-artem/proj-mcp-recall-md/issues"
 
 [project.scripts]
 mcp-recall-md = "mcp_recall_md.server:main"

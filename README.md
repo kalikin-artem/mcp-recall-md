@@ -5,9 +5,9 @@
 </p>
 
 <p align="center">
-  <a href="https://pypi.org/project/mcp-recall-md/"><img src="https://img.shields.io/pypi/v/mcp-recall-md" alt="PyPI version"></a>
-  <a href="https://pypi.org/project/mcp-recall-md/"><img src="https://img.shields.io/pypi/pyversions/mcp-recall-md" alt="Python versions"></a>
-  <a href="LICENSE"><img src="https://img.shields.io/github/license/kalikin-artem/mcp-recall-md" alt="License"></a>
+  <a href="https://pypi.org/project/proj-mcp-recall-md/"><img src="https://img.shields.io/pypi/v/proj-mcp-recall-md" alt="PyPI version"></a>
+  <a href="https://pypi.org/project/proj-mcp-recall-md/"><img src="https://img.shields.io/pypi/pyversions/proj-mcp-recall-md" alt="Python versions"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/github/license/kalikin-artem/proj-mcp-recall-md" alt="License"></a>
   <a href="https://ko-fi.com/kalikinartem"><img src="https://img.shields.io/badge/Ko--fi-Support%20this%20project-FF5E5B?logo=ko-fi&logoColor=white" alt="Ko-fi"></a>
 </p>
 
@@ -83,7 +83,7 @@ pip install mcp-recall-md
 <details>
 <summary><b>Standalone .exe (no Python needed)</b></summary>
 
-1. Download **mcp-recall-md.exe** from the [latest release](https://github.com/kalikin-artem/mcp-recall-md/releases)
+1. Download **mcp-recall-md.exe** from the [latest release](https://github.com/kalikin-artem/proj-mcp-recall-md/releases)
 2. Put it somewhere permanent (e.g. `C:\Tools\mcp-recall-md\`)
 
 ```json
